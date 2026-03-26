@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Wind, MapPin, ArrowLeft, Send, CheckCircle2, Loader2 } from "lucide-react";
-import MapPickerLazy from "@/components/MapPickerLazy";
+import MapPicker from "@/components/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
