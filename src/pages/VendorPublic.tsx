@@ -136,12 +136,27 @@ const VendorPublic = () => {
 
             <div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Lokasi Workshop</h2>
-              <div className="w-full h-64 rounded-xl bg-muted border border-border flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Peta lokasi workshop</p>
+              {vendor.address_full && (
+                <p className="text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 shrink-0" />{vendor.address_full}
+                </p>
+              )}
+              {vendor.latitude && vendor.longitude ? (
+                <MapPicker
+                  latitude={vendor.latitude}
+                  longitude={vendor.longitude}
+                  onLocationChange={() => {}}
+                  height="h-64"
+                  readonly
+                />
+              ) : (
+                <div className="w-full h-64 rounded-xl bg-muted border border-border flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Lokasi belum ditentukan</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
