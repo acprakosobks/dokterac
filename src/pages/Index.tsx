@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Wind, MapPin, Calendar, Shield, ArrowRight, Star } from "lucide-react";
 import heroImage from "@/assets/hero-ac-service.jpg";
@@ -34,6 +37,18 @@ const steps = [
 ];
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const checkVendor = async () => {
+      const { data } = await supabase.from("vendors").select("id").eq("user_id", user.id).maybeSingle();
+      if (data) navigate("/vendor/dashboard");
+    };
+    checkVendor();
+  }, [user, authLoading, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}

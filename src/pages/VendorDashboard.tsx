@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Wind, MessageCircle, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2 } from "lucide-react";
+import { Wind, MessageCircle, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import BookingDetailDialog from "@/components/BookingDetailDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -27,10 +28,15 @@ interface Booking {
   id: string;
   customer_name: string;
   customer_whatsapp: string;
+  customer_email?: string | null;
+  customer_address_detail?: string | null;
+  customer_latitude?: number | null;
+  customer_longitude?: number | null;
   booking_date: string;
   booking_time: string;
   status: string;
   selected_services: Json;
+  notes?: string | null;
   created_at: string;
 }
 
@@ -41,9 +47,12 @@ const VendorDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [vendorSlug, setVendorSlug] = useState<string | null>(null);
+  const [vendorLat, setVendorLat] = useState<number | null>(null);
+  const [vendorLng, setVendorLng] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>("booking_date");
   const [sortAsc, setSortAsc] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -54,7 +63,7 @@ const VendorDashboard = () => {
     const fetchData = async () => {
       const { data: vendor } = await supabase
         .from("vendors")
-        .select("id, slug")
+        .select("id, slug, latitude, longitude")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -64,6 +73,8 @@ const VendorDashboard = () => {
       }
 
       setVendorSlug(vendor.slug);
+      setVendorLat(vendor.latitude ?? null);
+      setVendorLng(vendor.longitude ?? null);
 
       const { data: bookingData } = await supabase
         .from("bookings")
@@ -216,14 +227,8 @@ const VendorDashboard = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" asChild>
-                            <a
-                              href={`https://wa.me/${booking.customer_whatsapp}?text=${encodeURIComponent(`Halo ${booking.customer_name}, pesanan servis AC Anda pada ${booking.booking_date} jam ${booking.booking_time} telah kami terima. Terima kasih!`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <MessageCircle className="h-4 w-4" />WhatsApp
-                            </a>
+                          <Button variant="outline" size="sm" onClick={() => setSelectedBooking(booking)}>
+                            <Eye className="h-4 w-4" />Detail
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -235,6 +240,14 @@ const VendorDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BookingDetailDialog
+        open={!!selectedBooking}
+        onOpenChange={(open) => !open && setSelectedBooking(null)}
+        booking={selectedBooking}
+        vendorLat={vendorLat}
+        vendorLng={vendorLng}
+      />
     </div>
   );
 };
