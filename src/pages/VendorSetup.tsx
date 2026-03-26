@@ -109,6 +109,7 @@ const VendorSetup = () => {
         const { data, error } = await supabase.from("vendors").insert({
           user_id: user.id, company_name: companyName, whatsapp_number: whatsapp,
           email, slug, address_full: address, operational_hours: schedule,
+          latitude, longitude,
         }).select().single();
         if (error) throw error;
         currentVendorId = data.id;
