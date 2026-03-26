@@ -72,6 +72,8 @@ const BookingForm = () => {
         customer_whatsapp: customerWhatsapp,
         customer_email: customerEmail || null,
         customer_address_detail: customerAddress,
+        customer_latitude: customerLat,
+        customer_longitude: customerLng,
         booking_date: bookingDate,
         booking_time: bookingTime,
         notes: notes || null,
