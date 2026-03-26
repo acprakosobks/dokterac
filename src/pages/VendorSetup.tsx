@@ -134,6 +134,7 @@ const VendorSetup = () => {
       }
 
       toast.success("Profil berhasil disimpan!");
+      navigate("/vendor/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Gagal menyimpan profil");
     } finally {
