@@ -59,6 +59,8 @@ const VendorSetup = () => {
         setEmail(vendor.email || "");
         setSlug(vendor.slug);
         setAddress(vendor.address_full || "");
+        setLatitude(vendor.latitude);
+        setLongitude(vendor.longitude);
         if (vendor.operational_hours && typeof vendor.operational_hours === "object") {
           setSchedule(vendor.operational_hours as any);
         }
