@@ -73,6 +73,8 @@ const VendorDashboard = () => {
       }
 
       setVendorSlug(vendor.slug);
+      setVendorLat(vendor.latitude ?? null);
+      setVendorLng(vendor.longitude ?? null);
 
       const { data: bookingData } = await supabase
         .from("bookings")
