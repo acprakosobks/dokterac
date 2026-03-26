@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Wind, Plus, Trash2, Save, Clock, MapPin } from "lucide-react";
+import MapPicker from "@/components/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,8 @@ const VendorSetup = () => {
   const [email, setEmail] = useState("");
   const [slug, setSlug] = useState("");
   const [address, setAddress] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([
@@ -56,6 +59,8 @@ const VendorSetup = () => {
         setEmail(vendor.email || "");
         setSlug(vendor.slug);
         setAddress(vendor.address_full || "");
+        setLatitude(vendor.latitude);
+        setLongitude(vendor.longitude);
         if (vendor.operational_hours && typeof vendor.operational_hours === "object") {
           setSchedule(vendor.operational_hours as any);
         }
@@ -97,12 +102,14 @@ const VendorSetup = () => {
         const { error } = await supabase.from("vendors").update({
           company_name: companyName, whatsapp_number: whatsapp, email, slug,
           address_full: address, operational_hours: schedule,
+          latitude, longitude,
         }).eq("id", vendorId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase.from("vendors").insert({
           user_id: user.id, company_name: companyName, whatsapp_number: whatsapp,
           email, slug, address_full: address, operational_hours: schedule,
+          latitude, longitude,
         }).select().single();
         if (error) throw error;
         currentVendorId = data.id;
@@ -192,13 +199,12 @@ const VendorSetup = () => {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />Lokasi Workshop (Peta)</Label>
-              <div className="w-full h-64 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm font-medium">Peta akan ditampilkan di sini</p>
-                  <p className="text-xs">Integrasi Leaflet.js + OpenStreetMap</p>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground">Klik pada peta untuk menandai lokasi workshop Anda.</p>
+              <MapPicker
+                latitude={latitude}
+                longitude={longitude}
+                onLocationChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }}
+              />
             </div>
           </CardContent>
         </Card>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Wind, MapPin, ArrowLeft, Send, CheckCircle2, Loader2 } from "lucide-react";
+import MapPicker from "@/components/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ const BookingForm = () => {
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [customerLat, setCustomerLat] = useState<number | null>(null);
+  const [customerLng, setCustomerLng] = useState<number | null>(null);
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("");
   const [notes, setNotes] = useState("");
@@ -69,6 +72,8 @@ const BookingForm = () => {
         customer_whatsapp: customerWhatsapp,
         customer_email: customerEmail || null,
         customer_address_detail: customerAddress,
+        customer_latitude: customerLat,
+        customer_longitude: customerLng,
         booking_date: bookingDate,
         booking_time: bookingTime,
         notes: notes || null,
@@ -154,12 +159,12 @@ const BookingForm = () => {
               <CardTitle className="font-display flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />Lokasi Kunjungan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="w-full h-48 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Pilih lokasi di peta</p>
-                </div>
-              </div>
+              <MapPicker
+                latitude={customerLat}
+                longitude={customerLng}
+                onLocationChange={(lat, lng) => { setCustomerLat(lat); setCustomerLng(lng); }}
+                height="h-48"
+              />
               <div className="space-y-2">
                 <Label>Detail Alamat</Label>
                 <Textarea placeholder="Nomor rumah, lantai, patokan, dll." value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} required />
