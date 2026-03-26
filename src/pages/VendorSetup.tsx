@@ -29,6 +29,8 @@ const VendorSetup = () => {
   const [email, setEmail] = useState("");
   const [slug, setSlug] = useState("");
   const [address, setAddress] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([
