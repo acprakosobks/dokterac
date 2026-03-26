@@ -14,7 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          created_at: string
+          customer_address_detail: string | null
+          customer_email: string | null
+          customer_latitude: number | null
+          customer_longitude: number | null
+          customer_name: string
+          customer_whatsapp: string
+          id: string
+          notes: string | null
+          selected_services: Json | null
+          status: Database["public"]["Enums"]["booking_status"]
+          vendor_id: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          customer_address_detail?: string | null
+          customer_email?: string | null
+          customer_latitude?: number | null
+          customer_longitude?: number | null
+          customer_name: string
+          customer_whatsapp: string
+          id?: string
+          notes?: string | null
+          selected_services?: Json | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          vendor_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          customer_address_detail?: string | null
+          customer_email?: string | null
+          customer_latitude?: number | null
+          customer_longitude?: number | null
+          customer_name?: string
+          customer_whatsapp?: string
+          id?: string
+          notes?: string | null
+          selected_services?: Json | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          price: number
+          service_name: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          price?: number
+          service_name: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          price?: number
+          service_name?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          address_full: string | null
+          company_name: string
+          created_at: string
+          email: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          operational_hours: Json | null
+          slug: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          address_full?: string | null
+          company_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          operational_hours?: Json | null
+          slug: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          address_full?: string | null
+          company_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          operational_hours?: Json | null
+          slug?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +161,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +288,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+    },
   },
 } as const
