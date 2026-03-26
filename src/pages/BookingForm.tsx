@@ -159,7 +159,7 @@ const BookingForm = () => {
               <CardTitle className="font-display flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />Lokasi Kunjungan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <MapPickerLazy
+              <MapPicker
                 latitude={customerLat}
                 longitude={customerLng}
                 onLocationChange={(lat, lng) => { setCustomerLat(lat); setCustomerLng(lng); }}
