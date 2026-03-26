@@ -63,7 +63,7 @@ const VendorDashboard = () => {
     const fetchData = async () => {
       const { data: vendor } = await supabase
         .from("vendors")
-        .select("id, slug")
+        .select("id, slug, latitude, longitude")
         .eq("user_id", user.id)
         .maybeSingle();
 
