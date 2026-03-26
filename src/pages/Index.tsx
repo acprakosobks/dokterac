@@ -37,6 +37,18 @@ const steps = [
 ];
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const checkVendor = async () => {
+      const { data } = await supabase.from("vendors").select("id").eq("user_id", user.id).maybeSingle();
+      if (data) navigate("/vendor/dashboard");
+    };
+    checkVendor();
+  }, [user, authLoading, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
