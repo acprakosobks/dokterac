@@ -102,6 +102,7 @@ const VendorSetup = () => {
         const { error } = await supabase.from("vendors").update({
           company_name: companyName, whatsapp_number: whatsapp, email, slug,
           address_full: address, operational_hours: schedule,
+          latitude, longitude,
         }).eq("id", vendorId);
         if (error) throw error;
       } else {
