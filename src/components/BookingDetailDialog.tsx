@@ -215,11 +215,15 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
                 <MessageCircle className="h-4 w-4" />WhatsApp
               </a>
             </Button>
-            {googleMapsUrl && (
+            {googleMapsUrl ? (
               <Button variant="outline" className="w-full" asChild>
                 <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
                   <MapPin className="h-4 w-4" />Buka Google Maps
                 </a>
+              </Button>
+            ) : (
+              <Button variant="outline" className="w-full" disabled>
+                <MapPin className="h-4 w-4" />Lokasi belum tersedia
               </Button>
             )}
           </div>
