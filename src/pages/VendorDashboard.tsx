@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Wind, MessageCircle, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2 } from "lucide-react";
+import { Wind, MessageCircle, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import BookingDetailDialog from "@/components/BookingDetailDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 const STATUS_STYLES: Record<string, string> = {
