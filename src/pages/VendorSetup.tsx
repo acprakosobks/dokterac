@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Wind, Plus, Trash2, Save, Clock, MapPin } from "lucide-react";
-import MapPickerLazy from "@/components/MapPickerLazy";
+import MapPicker from "@/components/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -200,7 +200,7 @@ const VendorSetup = () => {
             <div className="space-y-2">
               <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />Lokasi Workshop (Peta)</Label>
               <p className="text-xs text-muted-foreground">Klik pada peta untuk menandai lokasi workshop Anda.</p>
-              <MapPickerLazy
+              <MapPicker
                 latitude={latitude}
                 longitude={longitude}
                 onLocationChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }}

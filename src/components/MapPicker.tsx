@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -18,47 +17,66 @@ interface MapPickerProps {
   height?: string;
 }
 
-const LocationMarker = ({
-  position,
-  onLocationChange,
-}: {
-  position: [number, number] | null;
-  onLocationChange: (lat: number, lng: number) => void;
-}) => {
-  useMapEvents({
-    click(e) {
-      onLocationChange(e.latlng.lat, e.latlng.lng);
-    },
-  });
-
-  return position ? <Marker position={position} /> : null;
-};
-
 const MapPicker = ({ latitude, longitude, onLocationChange, height = "h-64" }: MapPickerProps) => {
-  const [position, setPosition] = useState<[number, number] | null>(
-    latitude && longitude ? [latitude, longitude] : null
-  );
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
 
+  // Initialize map
   useEffect(() => {
-    if (latitude && longitude) setPosition([latitude, longitude]);
-  }, [latitude, longitude]);
+    if (!containerRef.current || mapRef.current) return;
 
-  const handleChange = (lat: number, lng: number) => {
-    setPosition([lat, lng]);
-    onLocationChange(lat, lng);
-  };
+    const center: L.LatLngExpression = latitude && longitude ? [latitude, longitude] : [-6.2088, 106.8456];
 
-  const center: [number, number] = position || [-6.2088, 106.8456]; // Default: Jakarta
+    const map = L.map(containerRef.current).setView(center, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    if (latitude && longitude) {
+      markerRef.current = L.marker([latitude, longitude]).addTo(map);
+    }
+
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else {
+        markerRef.current = L.marker([lat, lng]).addTo(map);
+      }
+      onLocationChange(lat, lng);
+    });
+
+    mapRef.current = map;
+    setReady(true);
+
+    // Fix map size after render
+    setTimeout(() => map.invalidateSize(), 100);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update marker when props change externally
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    if (latitude && longitude) {
+      if (markerRef.current) {
+        markerRef.current.setLatLng([latitude, longitude]);
+      } else {
+        markerRef.current = L.marker([latitude, longitude]).addTo(mapRef.current);
+      }
+      mapRef.current.setView([latitude, longitude], mapRef.current.getZoom());
+    }
+  }, [latitude, longitude, ready]);
 
   return (
     <div className={`w-full ${height} rounded-xl overflow-hidden border border-border`}>
-      <MapContainer center={center} zoom={13} className="h-full w-full" scrollWheelZoom>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <LocationMarker position={position} onLocationChange={handleChange} />
-      </MapContainer>
+      <div ref={containerRef} className="h-full w-full" />
     </div>
   );
 };
