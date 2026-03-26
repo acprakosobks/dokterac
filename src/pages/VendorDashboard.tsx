@@ -47,9 +47,12 @@ const VendorDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [vendorSlug, setVendorSlug] = useState<string | null>(null);
+  const [vendorLat, setVendorLat] = useState<number | null>(null);
+  const [vendorLng, setVendorLng] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>("booking_date");
   const [sortAsc, setSortAsc] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
