@@ -227,14 +227,8 @@ const VendorDashboard = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" asChild>
-                            <a
-                              href={`https://wa.me/${booking.customer_whatsapp}?text=${encodeURIComponent(`Halo ${booking.customer_name}, pesanan servis AC Anda pada ${booking.booking_date} jam ${booking.booking_time} telah kami terima. Terima kasih!`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <MessageCircle className="h-4 w-4" />WhatsApp
-                            </a>
+                          <Button variant="outline" size="sm" onClick={() => setSelectedBooking(booking)}>
+                            <Eye className="h-4 w-4" />Detail
                           </Button>
                         </TableCell>
                       </TableRow>
