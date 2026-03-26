@@ -240,6 +240,14 @@ const VendorDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BookingDetailDialog
+        open={!!selectedBooking}
+        onOpenChange={(open) => !open && setSelectedBooking(null)}
+        booking={selectedBooking}
+        vendorLat={vendorLat}
+        vendorLng={vendorLng}
+      />
     </div>
   );
 };

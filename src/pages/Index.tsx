@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Wind, MapPin, Calendar, Shield, ArrowRight, Star } from "lucide-react";
 import heroImage from "@/assets/hero-ac-service.jpg";
