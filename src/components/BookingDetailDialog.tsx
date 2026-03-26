@@ -209,16 +209,16 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
           {/* Actions */}
           <Separator />
-          <div className="flex gap-2">
-            <Button className="flex-1" asChild>
+          <div className="flex flex-col gap-2">
+            <Button className="w-full" asChild>
               <a href={waUrl} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="h-4 w-4" />WhatsApp
               </a>
             </Button>
             {googleMapsUrl && (
-              <Button variant="outline" className="flex-1" asChild>
+              <Button variant="outline" className="w-full" asChild>
                 <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
-                  <MapPin className="h-4 w-4" />Buka Lokasi
+                  <MapPin className="h-4 w-4" />Buka Google Maps
                 </a>
               </Button>
             )}
