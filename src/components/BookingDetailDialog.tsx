@@ -62,18 +62,18 @@ function estimateDuration(distanceKm: number): string {
 }
 
 const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng }: BookingDetailDialogProps) => {
-  if (!booking) return null;
-
-  const services = Array.isArray(booking.selected_services) ? (booking.selected_services as any[]) : [];
+  const services = booking ? (Array.isArray(booking.selected_services) ? (booking.selected_services as any[]) : []) : [];
   const total = services.reduce((sum, s) => sum + (Number(s?.price) || 0), 0);
 
   const distanceInfo = useMemo(() => {
-    if (vendorLat && vendorLng && booking.customer_latitude && booking.customer_longitude) {
+    if (booking && vendorLat && vendorLng && booking.customer_latitude && booking.customer_longitude) {
       const dist = haversineDistance(vendorLat, vendorLng, booking.customer_latitude, booking.customer_longitude);
       return { distance: dist, duration: estimateDuration(dist) };
     }
     return null;
-  }, [vendorLat, vendorLng, booking.customer_latitude, booking.customer_longitude]);
+  }, [vendorLat, vendorLng, booking?.customer_latitude, booking?.customer_longitude]);
+
+  if (!booking) return null;
 
   const googleMapsUrl = booking.customer_latitude && booking.customer_longitude
     ? vendorLat && vendorLng

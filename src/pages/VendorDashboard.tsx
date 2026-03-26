@@ -28,10 +28,15 @@ interface Booking {
   id: string;
   customer_name: string;
   customer_whatsapp: string;
+  customer_email?: string | null;
+  customer_address_detail?: string | null;
+  customer_latitude?: number | null;
+  customer_longitude?: number | null;
   booking_date: string;
   booking_time: string;
   status: string;
   selected_services: Json;
+  notes?: string | null;
   created_at: string;
 }
 
