@@ -96,7 +96,7 @@ const VendorDashboard = () => {
 
   const getTotal = (selected: Json): number => {
     if (!Array.isArray(selected)) return 0;
-    return selected.reduce((sum: number, s: any) => sum + (Number(s.price) || 0), 0);
+    return (selected as any[]).reduce((sum, s) => sum + (Number(s?.price) || 0), 0) as number;
   };
 
   const stats = {
