@@ -159,12 +159,12 @@ const BookingForm = () => {
               <CardTitle className="font-display flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />Lokasi Kunjungan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="w-full h-48 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Pilih lokasi di peta</p>
-                </div>
-              </div>
+              <MapPicker
+                latitude={customerLat}
+                longitude={customerLng}
+                onLocationChange={(lat, lng) => { setCustomerLat(lat); setCustomerLng(lng); }}
+                height="h-48"
+              />
               <div className="space-y-2">
                 <Label>Detail Alamat</Label>
                 <Textarea placeholder="Nomor rumah, lantai, patokan, dll." value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} required />

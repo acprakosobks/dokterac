@@ -199,13 +199,12 @@ const VendorSetup = () => {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />Lokasi Workshop (Peta)</Label>
-              <div className="w-full h-64 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm font-medium">Peta akan ditampilkan di sini</p>
-                  <p className="text-xs">Integrasi Leaflet.js + OpenStreetMap</p>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground">Klik pada peta untuk menandai lokasi workshop Anda.</p>
+              <MapPicker
+                latitude={latitude}
+                longitude={longitude}
+                onLocationChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }}
+              />
             </div>
           </CardContent>
         </Card>
