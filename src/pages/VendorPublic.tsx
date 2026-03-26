@@ -14,6 +14,8 @@ interface VendorData {
   whatsapp_number: string;
   email: string | null;
   address_full: string | null;
+  latitude: number | null;
+  longitude: number | null;
   operational_hours: Record<string, { open: string; close: string; active: boolean }> | null;
 }
 
