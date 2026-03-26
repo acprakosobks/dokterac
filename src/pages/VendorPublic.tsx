@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Wind, MapPin, Clock, Phone, Mail, CheckCircle2, Calendar, ArrowRight, Loader2 } from "lucide-react";
+import MapPicker from "@/components/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
