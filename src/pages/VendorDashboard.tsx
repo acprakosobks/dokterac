@@ -47,6 +47,7 @@ const VendorDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [vendorSlug, setVendorSlug] = useState<string | null>(null);
+  const [vendorActive, setVendorActive] = useState<boolean>(true);
   const [vendorLat, setVendorLat] = useState<number | null>(null);
   const [vendorLng, setVendorLng] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
