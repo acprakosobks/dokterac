@@ -160,6 +160,15 @@ const VendorDashboard = () => {
         </div>
       </header>
 
+      {!vendorActive && (
+        <div className="bg-orange-50 dark:bg-orange-950/30 border-b border-orange-200 dark:border-orange-800 px-4 py-3">
+          <div className="container mx-auto flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+            <Clock className="h-4 w-4 shrink-0" />
+            <p><strong>Akun Anda belum diverifikasi.</strong> Halaman publik dan link booking Anda belum aktif. Admin akan segera memverifikasi pendaftaran Anda.</p>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div>
           <h1 className="font-display text-3xl font-bold text-foreground">Dashboard</h1>
