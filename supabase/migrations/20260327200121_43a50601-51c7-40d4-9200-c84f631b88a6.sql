@@ -1,0 +1,1 @@
+ALTER TABLE public.vendors ALTER COLUMN is_active SET DEFAULT false;

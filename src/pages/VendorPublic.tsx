@@ -42,7 +42,7 @@ const VendorPublic = () => {
         .eq("slug", slug)
         .maybeSingle();
 
-      if (!vendorData) {
+      if (!vendorData || !vendorData.is_active) {
         setNotFound(true);
         setLoading(false);
         return;

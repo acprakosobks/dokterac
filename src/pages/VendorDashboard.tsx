@@ -47,6 +47,7 @@ const VendorDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [vendorSlug, setVendorSlug] = useState<string | null>(null);
+  const [vendorActive, setVendorActive] = useState<boolean>(true);
   const [vendorLat, setVendorLat] = useState<number | null>(null);
   const [vendorLng, setVendorLng] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +64,7 @@ const VendorDashboard = () => {
     const fetchData = async () => {
       const { data: vendor } = await supabase
         .from("vendors")
-        .select("id, slug, latitude, longitude")
+        .select("id, slug, latitude, longitude, is_active")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -73,6 +74,7 @@ const VendorDashboard = () => {
       }
 
       setVendorSlug(vendor.slug);
+      setVendorActive(vendor.is_active ?? false);
       setVendorLat(vendor.latitude ?? null);
       setVendorLng(vendor.longitude ?? null);
 
@@ -157,6 +159,15 @@ const VendorDashboard = () => {
           </div>
         </div>
       </header>
+
+      {!vendorActive && (
+        <div className="bg-orange-50 dark:bg-orange-950/30 border-b border-orange-200 dark:border-orange-800 px-4 py-3">
+          <div className="container mx-auto flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+            <Clock className="h-4 w-4 shrink-0" />
+            <p><strong>Akun Anda belum diverifikasi.</strong> Halaman publik dan link booking Anda belum aktif. Admin akan segera memverifikasi pendaftaran Anda.</p>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div>
