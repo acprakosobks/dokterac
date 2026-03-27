@@ -74,6 +74,7 @@ const VendorDashboard = () => {
       }
 
       setVendorSlug(vendor.slug);
+      setVendorActive(vendor.is_active ?? false);
       setVendorLat(vendor.latitude ?? null);
       setVendorLng(vendor.longitude ?? null);
 
