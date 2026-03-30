@@ -13,10 +13,12 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       return;
     }
     const check = async () => {
-      const { data } = await supabase.rpc("has_role", {
+      console.log("AdminRoute: checking role for user", user.id, user.email);
+      const { data, error } = await supabase.rpc("has_role", {
         _user_id: user.id,
         _role: "admin",
       });
+      console.log("AdminRoute: has_role result", { data, error });
       setIsAdmin(!!data);
     };
     check();
