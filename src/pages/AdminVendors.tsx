@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import VendorDocumentsViewer from "@/components/VendorDocumentsViewer";
 
 interface Vendor {
   id: string;
@@ -227,7 +228,7 @@ const AdminVendors = () => {
 
       {/* Vendor Detail Dialog */}
       <Dialog open={!!selectedVendor} onOpenChange={() => setSelectedVendor(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Vendor</DialogTitle>
           </DialogHeader>
@@ -247,6 +248,11 @@ const AdminVendors = () => {
                 <div><span className="text-muted-foreground">Total Pesanan:</span><p className="font-medium">{bookingCounts[selectedVendor.id] || 0}</p></div>
                 <div><span className="text-muted-foreground">Bergabung:</span><p className="font-medium">{new Date(selectedVendor.created_at).toLocaleDateString("id-ID")}</p></div>
                 <div><span className="text-muted-foreground">Koordinat:</span><p className="font-medium">{selectedVendor.latitude && selectedVendor.longitude ? `${selectedVendor.latitude}, ${selectedVendor.longitude}` : "-"}</p></div>
+              </div>
+
+              {/* Vendor Documents Section */}
+              <div className="pt-3 border-t">
+                <VendorDocumentsViewer vendorId={selectedVendor.id} />
               </div>
 
               <div className="pt-3 border-t flex gap-2">
