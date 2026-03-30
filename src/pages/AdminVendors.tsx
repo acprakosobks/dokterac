@@ -250,6 +250,11 @@ const AdminVendors = () => {
                 <div><span className="text-muted-foreground">Koordinat:</span><p className="font-medium">{selectedVendor.latitude && selectedVendor.longitude ? `${selectedVendor.latitude}, ${selectedVendor.longitude}` : "-"}</p></div>
               </div>
 
+              {/* Vendor Documents Section */}
+              <div className="pt-3 border-t">
+                <VendorDocumentsViewer vendorId={selectedVendor.id} />
+              </div>
+
               <div className="pt-3 border-t flex gap-2">
                 {selectedVendor.is_active ? (
                   <Button variant="destructive" className="w-full" onClick={() => { deactivateVendor(selectedVendor); setSelectedVendor(null); }}>

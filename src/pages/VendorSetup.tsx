@@ -246,6 +246,9 @@ const VendorSetup = () => {
           </CardContent>
         </Card>
 
+        {/* Document Upload Section */}
+        <VendorDocumentUpload vendorId={vendorId} userId={user?.id || ""} />
+
         <Card>
           <CardHeader>
             <CardTitle className="font-display flex items-center gap-2"><Clock className="h-5 w-5" />Jam Operasional</CardTitle>
