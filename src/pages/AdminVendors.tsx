@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import VendorDocumentsViewer from "@/components/VendorDocumentsViewer";
 
 interface Vendor {
   id: string;
