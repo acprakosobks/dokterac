@@ -228,7 +228,7 @@ const AdminVendors = () => {
 
       {/* Vendor Detail Dialog */}
       <Dialog open={!!selectedVendor} onOpenChange={() => setSelectedVendor(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Vendor</DialogTitle>
           </DialogHeader>
