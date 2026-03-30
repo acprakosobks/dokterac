@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Wind, Plus, Trash2, Save, Clock, MapPin } from "lucide-react";
 import MapPicker from "@/components/MapPicker";
+import VendorDocumentUpload from "@/components/VendorDocumentUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
