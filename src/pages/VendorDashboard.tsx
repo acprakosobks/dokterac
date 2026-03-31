@@ -208,12 +208,13 @@ const VendorDashboard = () => {
           <p className="text-muted-foreground mt-1">Kelola pesanan masuk dari pelanggan Anda.</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
             { label: "Total Pesanan", value: stats.total, color: "text-foreground" },
             { label: "Menunggu", value: stats.pending, color: "text-warning" },
             { label: "Dikonfirmasi", value: stats.confirmed, color: "text-primary" },
-            { label: "Selesai", value: stats.completed, color: "text-success" },
+            { label: "Dikerjakan", value: stats.on_progress, color: "text-blue-600" },
+            { label: "Selesai", value: stats.done, color: "text-green-600" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-5">
