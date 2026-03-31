@@ -116,11 +116,40 @@ const VendorDashboard = () => {
     return (selected as any[]).reduce((sum, s) => sum + (Number(s?.price) || 0), 0) as number;
   };
 
+  const fetchData = async () => {
+    if (!user) return;
+    const { data: vendor } = await supabase
+      .from("vendors")
+      .select("id, slug, latitude, longitude, is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!vendor) {
+      navigate("/vendor/setup");
+      return;
+    }
+
+    setVendorSlug(vendor.slug);
+    setVendorActive(vendor.is_active ?? false);
+    setVendorLat(vendor.latitude ?? null);
+    setVendorLng(vendor.longitude ?? null);
+
+    const { data: bookingData } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("vendor_id", vendor.id)
+      .order("booking_date", { ascending: false });
+
+    setBookings(bookingData || []);
+    setLoading(false);
+  };
+
   const stats = {
     total: bookings.length,
     pending: bookings.filter((b) => b.status === "pending").length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
+    on_progress: bookings.filter((b) => b.status === "on_progress").length,
+    done: bookings.filter((b) => b.status === "done" || b.status === "completed").length,
   };
 
   if (authLoading || loading) {
