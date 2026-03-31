@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import BookingStatusLog from "@/components/BookingStatusLog";
+import BookingCompletionPhotos from "@/components/BookingCompletionPhotos";
 import * as XLSX from "xlsx";
 
 interface OrderRow {
