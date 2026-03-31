@@ -33,6 +33,8 @@ interface OrderRow {
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
+  on_progress: "Dalam Pengerjaan",
+  done: "Selesai",
   completed: "Completed",
   cancelled: "Cancelled",
 };
@@ -40,6 +42,8 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "outline",
   confirmed: "default",
+  on_progress: "secondary",
+  done: "default",
   completed: "secondary",
   cancelled: "destructive",
 };
