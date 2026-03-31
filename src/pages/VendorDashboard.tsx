@@ -65,32 +65,6 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetchData = async () => {
-      const { data: vendor } = await supabase
-        .from("vendors")
-        .select("id, slug, latitude, longitude, is_active")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!vendor) {
-        navigate("/vendor/setup");
-        return;
-      }
-
-      setVendorSlug(vendor.slug);
-      setVendorActive(vendor.is_active ?? false);
-      setVendorLat(vendor.latitude ?? null);
-      setVendorLng(vendor.longitude ?? null);
-
-      const { data: bookingData } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("vendor_id", vendor.id)
-        .order("booking_date", { ascending: false });
-
-      setBookings(bookingData || []);
-      setLoading(false);
-    };
     fetchData();
   }, [user, navigate]);
 
