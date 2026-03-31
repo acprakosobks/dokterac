@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import BookingStatusLog from "@/components/BookingStatusLog";
+import BookingCompletionPhotos from "@/components/BookingCompletionPhotos";
 import * as XLSX from "xlsx";
 
 interface OrderRow {
@@ -30,6 +33,8 @@ interface OrderRow {
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
+  on_progress: "Dalam Pengerjaan",
+  done: "Selesai",
   completed: "Completed",
   cancelled: "Cancelled",
 };
@@ -37,6 +42,8 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "outline",
   confirmed: "default",
+  on_progress: "secondary",
+  done: "default",
   completed: "secondary",
   cancelled: "destructive",
 };
@@ -200,7 +207,7 @@ const AdminOrders = () => {
 
       {/* Order Detail */}
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Pesanan</DialogTitle>
           </DialogHeader>
@@ -236,6 +243,18 @@ const AdminOrders = () => {
               {selectedOrder.notes && (
                 <div><span className="text-muted-foreground">Catatan:</span><p>{selectedOrder.notes}</p></div>
               )}
+
+              {/* Completion Photos */}
+              {(selectedOrder.status === "done" || selectedOrder.status === "completed") && (
+                <>
+                  <Separator />
+                  <BookingCompletionPhotos bookingId={selectedOrder.id} />
+                </>
+              )}
+
+              {/* Status Log */}
+              <Separator />
+              <BookingStatusLog bookingId={selectedOrder.id} />
             </div>
           )}
         </DialogContent>

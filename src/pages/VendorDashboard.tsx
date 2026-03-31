@@ -13,13 +13,17 @@ import type { Json } from "@/integrations/supabase/types";
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   confirmed: "bg-primary/10 text-primary border-primary/20",
-  completed: "bg-success/10 text-success border-success/20",
+  on_progress: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  done: "bg-green-500/10 text-green-600 border-green-500/20",
+  completed: "bg-green-500/10 text-green-600 border-green-500/20",
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Menunggu",
   confirmed: "Dikonfirmasi",
+  on_progress: "Dalam Pengerjaan",
+  done: "Selesai",
   completed: "Selesai",
   cancelled: "Dibatalkan",
 };
@@ -61,32 +65,6 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetchData = async () => {
-      const { data: vendor } = await supabase
-        .from("vendors")
-        .select("id, slug, latitude, longitude, is_active")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!vendor) {
-        navigate("/vendor/setup");
-        return;
-      }
-
-      setVendorSlug(vendor.slug);
-      setVendorActive(vendor.is_active ?? false);
-      setVendorLat(vendor.latitude ?? null);
-      setVendorLng(vendor.longitude ?? null);
-
-      const { data: bookingData } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("vendor_id", vendor.id)
-        .order("booking_date", { ascending: false });
-
-      setBookings(bookingData || []);
-      setLoading(false);
-    };
     fetchData();
   }, [user, navigate]);
 
@@ -112,11 +90,40 @@ const VendorDashboard = () => {
     return (selected as any[]).reduce((sum, s) => sum + (Number(s?.price) || 0), 0) as number;
   };
 
+  const fetchData = async () => {
+    if (!user) return;
+    const { data: vendor } = await supabase
+      .from("vendors")
+      .select("id, slug, latitude, longitude, is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!vendor) {
+      navigate("/vendor/setup");
+      return;
+    }
+
+    setVendorSlug(vendor.slug);
+    setVendorActive(vendor.is_active ?? false);
+    setVendorLat(vendor.latitude ?? null);
+    setVendorLng(vendor.longitude ?? null);
+
+    const { data: bookingData } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("vendor_id", vendor.id)
+      .order("booking_date", { ascending: false });
+
+    setBookings(bookingData || []);
+    setLoading(false);
+  };
+
   const stats = {
     total: bookings.length,
     pending: bookings.filter((b) => b.status === "pending").length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
+    on_progress: bookings.filter((b) => b.status === "on_progress").length,
+    done: bookings.filter((b) => b.status === "done" || b.status === "completed").length,
   };
 
   if (authLoading || loading) {
@@ -175,12 +182,13 @@ const VendorDashboard = () => {
           <p className="text-muted-foreground mt-1">Kelola pesanan masuk dari pelanggan Anda.</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
             { label: "Total Pesanan", value: stats.total, color: "text-foreground" },
             { label: "Menunggu", value: stats.pending, color: "text-warning" },
             { label: "Dikonfirmasi", value: stats.confirmed, color: "text-primary" },
-            { label: "Selesai", value: stats.completed, color: "text-success" },
+            { label: "Dikerjakan", value: stats.on_progress, color: "text-blue-600" },
+            { label: "Selesai", value: stats.done, color: "text-green-600" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-5">
@@ -258,6 +266,7 @@ const VendorDashboard = () => {
         booking={selectedBooking}
         vendorLat={vendorLat}
         vendorLng={vendorLng}
+        onStatusChange={fetchData}
       />
     </div>
   );
