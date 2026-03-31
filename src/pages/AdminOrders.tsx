@@ -207,7 +207,7 @@ const AdminOrders = () => {
 
       {/* Order Detail */}
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Pesanan</DialogTitle>
           </DialogHeader>
@@ -243,6 +243,18 @@ const AdminOrders = () => {
               {selectedOrder.notes && (
                 <div><span className="text-muted-foreground">Catatan:</span><p>{selectedOrder.notes}</p></div>
               )}
+
+              {/* Completion Photos */}
+              {(selectedOrder.status === "done" || selectedOrder.status === "completed") && (
+                <>
+                  <Separator />
+                  <BookingCompletionPhotos bookingId={selectedOrder.id} />
+                </>
+              )}
+
+              {/* Status Log */}
+              <Separator />
+              <BookingStatusLog bookingId={selectedOrder.id} />
             </div>
           )}
         </DialogContent>
