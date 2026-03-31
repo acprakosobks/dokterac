@@ -14,10 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_completion_photos: {
+        Row: {
+          booking_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_completion_photos_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_status_logs: {
+        Row: {
+          booking_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          notes: string | null
+          old_status: string | null
+        }
+        Insert: {
+          booking_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          booking_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
           booking_time: string
+          completion_notes: string | null
           created_at: string
           customer_address_detail: string | null
           customer_email: string | null
@@ -34,6 +105,7 @@ export type Database = {
         Insert: {
           booking_date: string
           booking_time: string
+          completion_notes?: string | null
           created_at?: string
           customer_address_detail?: string | null
           customer_email?: string | null
@@ -50,6 +122,7 @@ export type Database = {
         Update: {
           booking_date?: string
           booking_time?: string
+          completion_notes?: string | null
           created_at?: string
           customer_address_detail?: string | null
           customer_email?: string | null
@@ -227,7 +300,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "completed"
+        | "cancelled"
+        | "on_progress"
+        | "done"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -356,7 +435,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      booking_status: [
+        "pending",
+        "confirmed",
+        "completed",
+        "cancelled",
+        "on_progress",
+        "done",
+      ],
     },
   },
 } as const
