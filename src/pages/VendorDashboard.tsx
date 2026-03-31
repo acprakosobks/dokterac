@@ -292,6 +292,7 @@ const VendorDashboard = () => {
         booking={selectedBooking}
         vendorLat={vendorLat}
         vendorLng={vendorLng}
+        onStatusChange={fetchData}
       />
     </div>
   );
