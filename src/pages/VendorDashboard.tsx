@@ -13,13 +13,17 @@ import type { Json } from "@/integrations/supabase/types";
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   confirmed: "bg-primary/10 text-primary border-primary/20",
-  completed: "bg-success/10 text-success border-success/20",
+  on_progress: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  done: "bg-green-500/10 text-green-600 border-green-500/20",
+  completed: "bg-green-500/10 text-green-600 border-green-500/20",
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Menunggu",
   confirmed: "Dikonfirmasi",
+  on_progress: "Dalam Pengerjaan",
+  done: "Selesai",
   completed: "Selesai",
   cancelled: "Dibatalkan",
 };
