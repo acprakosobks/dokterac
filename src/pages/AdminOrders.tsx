@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,6 +29,7 @@ interface OrderRow {
   vendor_name: string;
   vendor_id: string;
   created_at: string;
+  completion_notes: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,10 +51,11 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const AdminOrders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [vendors, setVendors] = useState<{ id: string; company_name: string }[]>([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -62,6 +65,14 @@ const AdminOrders = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Sync URL param to filter
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    if (urlStatus && urlStatus !== statusFilter) {
+      setStatusFilter(urlStatus);
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     const { data: vendorsData } = await supabase.from("vendors").select("id, company_name");
@@ -80,6 +91,16 @@ const AdminOrders = () => {
         }))
       );
     }
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    if (value === "all") {
+      searchParams.delete("status");
+    } else {
+      searchParams.set("status", value);
+    }
+    setSearchParams(searchParams, { replace: true });
   };
 
   const filtered = orders.filter((o) => {
@@ -128,7 +149,6 @@ const AdminOrders = () => {
                 <Download className="h-4 w-4 mr-1" /> Export Excel
               </Button>
             </div>
-            {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -143,7 +163,7 @@ const AdminOrders = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger><SelectValue placeholder="Semua Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
@@ -244,7 +264,13 @@ const AdminOrders = () => {
                 <div><span className="text-muted-foreground">Catatan:</span><p>{selectedOrder.notes}</p></div>
               )}
 
-              {/* Completion Photos */}
+              {selectedOrder.completion_notes && (
+                <div className="bg-green-500/5 rounded-lg p-3 border border-green-500/10">
+                  <span className="text-muted-foreground text-xs">Catatan Penyelesaian:</span>
+                  <p className="mt-1">{selectedOrder.completion_notes}</p>
+                </div>
+              )}
+
               {(selectedOrder.status === "done" || selectedOrder.status === "completed") && (
                 <>
                   <Separator />
@@ -252,9 +278,8 @@ const AdminOrders = () => {
                 </>
               )}
 
-              {/* Status Log */}
               <Separator />
-              <BookingStatusLog bookingId={selectedOrder.id} />
+              <BookingStatusLog bookingId={selectedOrder.id} showSLA />
             </div>
           )}
         </DialogContent>

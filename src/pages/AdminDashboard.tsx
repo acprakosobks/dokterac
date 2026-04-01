@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, ShoppingCart, Store, TrendingUp } from "lucide-react";
+import { DollarSign, ShoppingCart, Store, TrendingUp, XCircle } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,7 +13,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   PieChart, Pie, Cell,
   AreaChart, Area,
-  ResponsiveContainer,
 } from "recharts";
 
 const COLORS = [
@@ -20,10 +20,22 @@ const COLORS = [
   "hsl(var(--destructive))",
   "hsl(142 76% 36%)",
   "hsl(48 96% 53%)",
+  "hsl(221 83% 53%)",
+  "hsl(280 65% 60%)",
 ];
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Menunggu",
+  confirmed: "Dikonfirmasi",
+  on_progress: "Dalam Pengerjaan",
+  done: "Selesai",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
+};
+
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, activeVendors: 0 });
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, activeVendors: 0, cancelledOrders: 0 });
   const [statusData, setStatusData] = useState<{ name: string; value: number }[]>([]);
   const [topVendors, setTopVendors] = useState<{ name: string; orders: number }[]>([]);
   const [trendData, setTrendData] = useState<{ date: string; orders: number }[]>([]);
@@ -33,28 +45,26 @@ const AdminDashboard = () => {
   }, []);
 
   const fetchData = async () => {
-    // Fetch all bookings
     const { data: bookings } = await supabase.from("bookings").select("*, vendors(company_name)");
     const { data: vendors } = await supabase.from("vendors").select("*");
 
     if (!bookings || !vendors) return;
 
-    // Stats
     const totalRevenue = bookings.reduce((sum, b) => {
       const services = (b.selected_services as any[]) || [];
       return sum + services.reduce((s: number, svc: any) => s + (svc.price || 0), 0);
     }, 0);
     const activeVendors = vendors.filter((v: any) => v.is_active).length;
-    setStats({ totalRevenue, totalOrders: bookings.length, activeVendors });
+    const cancelledOrders = bookings.filter((b) => b.status === "cancelled").length;
+    setStats({ totalRevenue, totalOrders: bookings.length, activeVendors, cancelledOrders });
 
-    // Status distribution
     const statusMap: Record<string, number> = {};
     bookings.forEach((b) => {
-      statusMap[b.status] = (statusMap[b.status] || 0) + 1;
+      const label = STATUS_LABELS[b.status] || b.status;
+      statusMap[label] = (statusMap[label] || 0) + 1;
     });
     setStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })));
 
-    // Top 5 vendors
     const vendorMap: Record<string, { name: string; orders: number }> = {};
     bookings.forEach((b: any) => {
       const name = b.vendors?.company_name || "Unknown";
@@ -67,7 +77,6 @@ const AdminDashboard = () => {
         .slice(0, 5)
     );
 
-    // Trend (last 30 days)
     const trend: Record<string, number> = {};
     const now = new Date();
     for (let i = 29; i >= 0; i--) {
@@ -82,21 +91,18 @@ const AdminDashboard = () => {
     setTrendData(Object.entries(trend).map(([date, orders]) => ({ date, orders })));
   };
 
-  const pieConfig: ChartConfig = {
-    value: { label: "Jumlah" },
-  };
-  const barConfig: ChartConfig = {
-    orders: { label: "Pesanan", color: "hsl(var(--primary))" },
-  };
-  const areaConfig: ChartConfig = {
-    orders: { label: "Pesanan", color: "hsl(var(--primary))" },
+  const pieConfig: ChartConfig = { value: { label: "Jumlah" } };
+  const barConfig: ChartConfig = { orders: { label: "Pesanan", color: "hsl(var(--primary))" } };
+  const areaConfig: ChartConfig = { orders: { label: "Pesanan", color: "hsl(var(--primary))" } };
+
+  const navigateToOrders = (status?: string) => {
+    navigate(status ? `/admin/orders?status=${status}` : "/admin/orders");
   };
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:ring-2 ring-primary/30 transition" onClick={() => navigateToOrders()}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -105,13 +111,22 @@ const AdminDashboard = () => {
             <div className="text-2xl font-bold">Rp {stats.totalRevenue.toLocaleString("id-ID")}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:ring-2 ring-primary/30 transition" onClick={() => navigateToOrders()}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Pesanan</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalOrders}</div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:ring-2 ring-destructive/30 transition" onClick={() => navigateToOrders("cancelled")}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pesanan Dibatalkan</CardTitle>
+            <XCircle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{stats.cancelledOrders}</div>
           </CardContent>
         </Card>
         <Card>
@@ -125,9 +140,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Order Trend */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -147,7 +160,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Status Pie */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Distribusi Status Pesanan</CardTitle>
@@ -166,7 +178,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Top Vendors Bar */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Top 5 Vendor</CardTitle>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Wind, MessageCircle, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye } from "lucide-react";
+import { Wind, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +58,7 @@ const VendorDashboard = () => {
   const [sortField, setSortField] = useState<SortField>("booking_date");
   const [sortAsc, setSortAsc] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -68,7 +69,14 @@ const VendorDashboard = () => {
     fetchData();
   }, [user, navigate]);
 
-  const sorted = [...bookings].sort((a, b) => {
+  const filteredBookings = statusFilter
+    ? bookings.filter((b) => {
+        if (statusFilter === "done") return b.status === "done" || b.status === "completed";
+        return b.status === statusFilter;
+      })
+    : bookings;
+
+  const sorted = [...filteredBookings].sort((a, b) => {
     const cmp = a[sortField].localeCompare(b[sortField]);
     return sortAsc ? cmp : -cmp;
   });
@@ -124,7 +132,17 @@ const VendorDashboard = () => {
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
     on_progress: bookings.filter((b) => b.status === "on_progress").length,
     done: bookings.filter((b) => b.status === "done" || b.status === "completed").length,
+    cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
+
+  const statCards = [
+    { label: "Total Pesanan", value: stats.total, color: "text-foreground", filter: null },
+    { label: "Menunggu", value: stats.pending, color: "text-warning", filter: "pending" },
+    { label: "Dikonfirmasi", value: stats.confirmed, color: "text-primary", filter: "confirmed" },
+    { label: "Dikerjakan", value: stats.on_progress, color: "text-blue-600", filter: "on_progress" },
+    { label: "Selesai", value: stats.done, color: "text-green-600", filter: "done" },
+    { label: "Dibatalkan", value: stats.cancelled, color: "text-destructive", filter: "cancelled" },
+  ];
 
   if (authLoading || loading) {
     return (
@@ -182,15 +200,13 @@ const VendorDashboard = () => {
           <p className="text-muted-foreground mt-1">Kelola pesanan masuk dari pelanggan Anda.</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {[
-            { label: "Total Pesanan", value: stats.total, color: "text-foreground" },
-            { label: "Menunggu", value: stats.pending, color: "text-warning" },
-            { label: "Dikonfirmasi", value: stats.confirmed, color: "text-primary" },
-            { label: "Dikerjakan", value: stats.on_progress, color: "text-blue-600" },
-            { label: "Selesai", value: stats.done, color: "text-green-600" },
-          ].map((stat) => (
-            <Card key={stat.label}>
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {statCards.map((stat) => (
+            <Card
+              key={stat.label}
+              className={`cursor-pointer transition hover:ring-2 ring-primary/30 ${statusFilter === stat.filter ? "ring-2 ring-primary" : ""}`}
+              onClick={() => setStatusFilter(statusFilter === stat.filter ? null : stat.filter)}
+            >
               <CardContent className="p-5">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className={`text-3xl font-display font-bold ${stat.color} mt-1`}>{stat.value}</p>
@@ -200,13 +216,25 @@ const VendorDashboard = () => {
         </div>
 
         <Card>
-          <CardHeader><CardTitle className="font-display">Daftar Pesanan</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-display">
+                Daftar Pesanan
+                {statusFilter && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {statCards.find((s) => s.filter === statusFilter)?.label}
+                    <button className="ml-1 hover:text-foreground" onClick={(e) => { e.stopPropagation(); setStatusFilter(null); }}>×</button>
+                  </Badge>
+                )}
+              </CardTitle>
+            </div>
+          </CardHeader>
           <CardContent>
-            {bookings.length === 0 ? (
+            {sorted.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Calendar className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                <p className="font-medium">Belum ada pesanan</p>
-                <p className="text-sm mt-1">Bagikan link profil Anda untuk mulai menerima booking.</p>
+                <p className="font-medium">{statusFilter ? "Tidak ada pesanan dengan status ini" : "Belum ada pesanan"}</p>
+                {!statusFilter && <p className="text-sm mt-1">Bagikan link profil Anda untuk mulai menerima booking.</p>}
               </div>
             ) : (
               <div className="overflow-x-auto">

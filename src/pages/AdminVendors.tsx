@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,9 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, Eye, CheckCircle, XCircle, Clock, MapPin, Timer } from "lucide-react";
 import VendorDocumentsViewer from "@/components/VendorDocumentsViewer";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface Vendor {
   id: string;
@@ -25,15 +28,14 @@ interface Vendor {
   longitude: number | null;
 }
 
+interface VendorSLA {
+  totalOrders: number;
+  avgDuration: number | null; // ms
+}
+
 type StatusFilter = "all" | "pending" | "active" | "inactive";
 
 const getVendorStatus = (v: Vendor): "pending" | "active" | "inactive" => {
-  // A vendor that was never activated (created as is_active=false and never changed) is "pending"
-  // We use a simple heuristic: if is_active is false and created recently or never had bookings
-  // For simplicity: is_active=true means active, is_active=false means we check if it looks like it was ever activated
-  // Since we don't track "verified" separately, we treat all is_active=false as "pending" (belum diverifikasi)
-  // unless we want to distinguish. Let's keep it simple:
-  // is_active = true → "active", is_active = false → "pending" (needs verification)
   return v.is_active ? "active" : "pending";
 };
 
@@ -43,12 +45,62 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   inactive: { label: "Nonaktif", variant: "destructive" },
 };
 
+function formatDuration(ms: number): string {
+  const totalMinutes = Math.floor(ms / 60000);
+  if (totalMinutes < 1) return "< 1 menit";
+  if (totalMinutes < 60) return `${totalMinutes} menit`;
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (hours < 24) return `${hours} jam ${mins > 0 ? `${mins} mnt` : ""}`.trim();
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  return `${days} hari ${remHours > 0 ? `${remHours} jam` : ""}`.trim();
+}
+
+const VendorMapPreview = ({ lat, lng }: { lat: number; lng: number }) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapRef.current, {
+      center: [lat, lng],
+      zoom: 15,
+      dragging: false,
+      scrollWheelZoom: false,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    const icon = L.divIcon({
+      html: `<div style="background:hsl(var(--primary));width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
+      className: "",
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
+    });
+    L.marker([lat, lng], { icon }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [lat, lng]);
+
+  return <div ref={mapRef} className="h-[180px] w-full rounded-lg overflow-hidden border border-border" />;
+};
+
 const AdminVendors = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [bookingCounts, setBookingCounts] = useState<Record<string, number>>({});
+  const [vendorSLAs, setVendorSLAs] = useState<Record<string, VendorSLA>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,11 +111,52 @@ const AdminVendors = () => {
     const { data } = await supabase.from("vendors").select("*").order("created_at", { ascending: false });
     if (data) {
       setVendors(data as Vendor[]);
-      const { data: bookings } = await supabase.from("bookings").select("vendor_id");
+
+      // Fetch bookings for counts
+      const { data: bookings } = await supabase.from("bookings").select("vendor_id, id");
       if (bookings) {
         const counts: Record<string, number> = {};
         bookings.forEach((b) => { counts[b.vendor_id] = (counts[b.vendor_id] || 0) + 1; });
         setBookingCounts(counts);
+      }
+
+      // Fetch status logs for SLA calculation
+      const { data: logs } = await supabase.from("booking_status_logs").select("booking_id, created_at, new_status, old_status").order("created_at", { ascending: true });
+      const { data: allBookings } = await supabase.from("bookings").select("id, vendor_id");
+
+      if (logs && allBookings) {
+        const bookingVendorMap: Record<string, string> = {};
+        allBookings.forEach((b) => { bookingVendorMap[b.id] = b.vendor_id; });
+
+        // Group logs by booking
+        const logsByBooking: Record<string, typeof logs> = {};
+        logs.forEach((l) => {
+          if (!logsByBooking[l.booking_id]) logsByBooking[l.booking_id] = [];
+          logsByBooking[l.booking_id].push(l);
+        });
+
+        // Calculate per-vendor avg total duration (first log to last log)
+        const vendorDurations: Record<string, number[]> = {};
+        Object.entries(logsByBooking).forEach(([bookingId, bLogs]) => {
+          if (bLogs.length < 2) return;
+          const vendorId = bookingVendorMap[bookingId];
+          if (!vendorId) return;
+          const total = new Date(bLogs[bLogs.length - 1].created_at).getTime() - new Date(bLogs[0].created_at).getTime();
+          if (!vendorDurations[vendorId]) vendorDurations[vendorId] = [];
+          vendorDurations[vendorId].push(total);
+        });
+
+        const slas: Record<string, VendorSLA> = {};
+        data.forEach((v: Vendor) => {
+          const durations = vendorDurations[v.id];
+          slas[v.id] = {
+            totalOrders: bookings?.filter((b) => b.vendor_id === v.id).length || 0,
+            avgDuration: durations && durations.length > 0
+              ? durations.reduce((a, b) => a + b, 0) / durations.length
+              : null,
+          };
+        });
+        setVendorSLAs(slas);
       }
     }
   };
@@ -103,9 +196,12 @@ const AdminVendors = () => {
   const pendingCount = vendors.filter((v) => !v.is_active).length;
   const activeCount = vendors.filter((v) => v.is_active).length;
 
+  const googleMapsUrl = selectedVendor?.latitude && selectedVendor?.longitude
+    ? `https://www.google.com/maps?q=${selectedVendor.latitude},${selectedVendor.longitude}`
+    : null;
+
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         <Card className="cursor-pointer hover:ring-2 ring-primary/30 transition" onClick={() => setStatusFilter("all")}>
           <CardContent className="pt-4 pb-3 flex items-center gap-3">
@@ -178,6 +274,7 @@ const AdminVendors = () => {
                   <TableHead>Nama</TableHead>
                   <TableHead className="hidden sm:table-cell">WhatsApp</TableHead>
                   <TableHead className="hidden md:table-cell">Pesanan</TableHead>
+                  <TableHead className="hidden lg:table-cell">Rata-rata SLA</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
@@ -186,11 +283,22 @@ const AdminVendors = () => {
                 {filtered.map((v) => {
                   const status = getVendorStatus(v);
                   const cfg = STATUS_CONFIG[status];
+                  const sla = vendorSLAs[v.id];
                   return (
                     <TableRow key={v.id}>
                       <TableCell className="font-medium">{v.company_name}</TableCell>
                       <TableCell className="hidden sm:table-cell">{v.whatsapp_number}</TableCell>
                       <TableCell className="hidden md:table-cell">{bookingCounts[v.id] || 0}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {sla?.avgDuration ? (
+                          <span className="inline-flex items-center gap-1 text-xs">
+                            <Timer className="h-3 w-3 text-muted-foreground" />
+                            {formatDuration(sla.avgDuration)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={cfg.variant}>{cfg.label}</Badge>
                       </TableCell>
@@ -215,7 +323,7 @@ const AdminVendors = () => {
                 })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Tidak ada vendor ditemukan
                     </TableCell>
                   </TableRow>
@@ -247,8 +355,27 @@ const AdminVendors = () => {
                 </div>
                 <div><span className="text-muted-foreground">Total Pesanan:</span><p className="font-medium">{bookingCounts[selectedVendor.id] || 0}</p></div>
                 <div><span className="text-muted-foreground">Bergabung:</span><p className="font-medium">{new Date(selectedVendor.created_at).toLocaleDateString("id-ID")}</p></div>
-                <div><span className="text-muted-foreground">Koordinat:</span><p className="font-medium">{selectedVendor.latitude && selectedVendor.longitude ? `${selectedVendor.latitude}, ${selectedVendor.longitude}` : "-"}</p></div>
+                <div><span className="text-muted-foreground">Rata-rata SLA:</span>
+                  <p className="font-medium">
+                    {vendorSLAs[selectedVendor.id]?.avgDuration
+                      ? formatDuration(vendorSLAs[selectedVendor.id].avgDuration!)
+                      : "-"}
+                  </p>
+                </div>
               </div>
+
+              {/* Map Section */}
+              {selectedVendor.latitude && selectedVendor.longitude && (
+                <div className="pt-3 border-t space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" />Lokasi Vendor</h4>
+                  <VendorMapPreview lat={selectedVendor.latitude} lng={selectedVendor.longitude} />
+                  <Button variant="outline" className="w-full" asChild>
+                    <a href={googleMapsUrl!} target="_blank" rel="noopener noreferrer">
+                      <MapPin className="h-4 w-4 mr-1" />Buka di Google Maps
+                    </a>
+                  </Button>
+                </div>
+              )}
 
               {/* Vendor Documents Section */}
               <div className="pt-3 border-t">
