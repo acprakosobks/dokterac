@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import BookingStatusLog from "@/components/BookingStatusLog";
 import BookingCompletionPhotos from "@/components/BookingCompletionPhotos";
 import BookingCompletionDialog from "@/components/BookingCompletionDialog";
+import CancelBookingDialog from "@/components/CancelBookingDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -74,6 +75,7 @@ function estimateDuration(distanceKm: number): string {
 const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng, onStatusChange, isAdmin }: BookingDetailDialogProps) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const { toast } = useToast();
 
   const services = booking ? (Array.isArray(booking.selected_services) ? (booking.selected_services as any[]) : []) : [];
@@ -124,9 +126,8 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
     `Halo ${booking.customer_name}, pesanan servis AC Anda pada ${booking.booking_date} jam ${booking.booking_time} telah kami terima. Terima kasih!`
   )}`;
 
-  // Determine available actions based on current status
   const renderStatusActions = () => {
-    if (isAdmin) return null; // Admin only views
+    if (isAdmin) return null;
     const status = booking.status;
 
     return (
@@ -137,9 +138,8 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
               Konfirmasi Pesanan
             </Button>
-            <Button variant="destructive" onClick={() => changeStatus("cancelled", "Pesanan dibatalkan")} disabled={actionLoading} className="w-full">
-              {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-              Batalkan
+            <Button variant="destructive" onClick={() => setCancelOpen(true)} disabled={actionLoading} className="w-full">
+              <XCircle className="h-4 w-4" />Batalkan
             </Button>
           </>
         )}
@@ -149,7 +149,7 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               Mulai Pengerjaan
             </Button>
-            <Button variant="destructive" onClick={() => changeStatus("cancelled", "Pesanan dibatalkan")} disabled={actionLoading} className="w-full">
+            <Button variant="destructive" onClick={() => setCancelOpen(true)} disabled={actionLoading} className="w-full">
               <XCircle className="h-4 w-4" />Batalkan
             </Button>
           </>
@@ -175,7 +175,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Status */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
               <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[booking.status] || ""}`}>
@@ -185,7 +184,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
             <Separator />
 
-            {/* Customer Info */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground">Data Pelanggan</h4>
               <div className="space-y-2 text-sm">
@@ -198,7 +196,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
             <Separator />
 
-            {/* Schedule */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground">Jadwal</h4>
               <div className="flex gap-6 text-sm">
@@ -209,7 +206,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
             <Separator />
 
-            {/* Services */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-foreground">Layanan</h4>
               <div className="space-y-2">
@@ -227,7 +223,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               </div>
             </div>
 
-            {/* Notes */}
             {booking.notes && (
               <>
                 <Separator />
@@ -238,7 +233,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               </>
             )}
 
-            {/* Completion notes */}
             {booking.completion_notes && (
               <>
                 <Separator />
@@ -249,7 +243,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               </>
             )}
 
-            {/* Completion Photos */}
             {(booking.status === "done" || booking.status === "completed") && (
               <>
                 <Separator />
@@ -257,7 +250,6 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               </>
             )}
 
-            {/* Distance info */}
             {distanceInfo && (
               <>
                 <Separator />
@@ -277,16 +269,13 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
               </>
             )}
 
-            {/* Status Log */}
             <Separator />
-            <BookingStatusLog bookingId={booking.id} />
+            <BookingStatusLog bookingId={booking.id} showSLA />
 
-            {/* Status Actions */}
             {renderStatusActions()}
 
             <Separator />
 
-            {/* Contact Actions */}
             <div className="flex flex-col gap-2">
               <Button className="w-full" asChild>
                 <a href={waUrl} target="_blank" rel="noopener noreferrer">
@@ -314,6 +303,17 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
         onOpenChange={setCompletionOpen}
         bookingId={booking.id}
         onCompleted={() => {
+          onStatusChange?.();
+          onOpenChange(false);
+        }}
+      />
+
+      <CancelBookingDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        bookingId={booking.id}
+        currentStatus={booking.status}
+        onCancelled={() => {
           onStatusChange?.();
           onOpenChange(false);
         }}
