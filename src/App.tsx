@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +11,6 @@ import VendorSetup from "./pages/VendorSetup.tsx";
 import VendorPublic from "./pages/VendorPublic.tsx";
 import BookingForm from "./pages/BookingForm.tsx";
 import VendorDashboard from "./pages/VendorDashboard.tsx";
-import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminLayout from "./layouts/AdminLayout.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AdminVendors from "./pages/AdminVendors.tsx";
@@ -34,7 +33,8 @@ const App = () => (
             <Route path="/vendor/dashboard" element={<VendorDashboard />} />
             <Route path="/v/:slug" element={<VendorPublic />} />
             <Route path="/v/:slug/book" element={<BookingForm />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Redirect old admin login to unified auth */}
+            <Route path="/admin/login" element={<Navigate to="/auth" replace />} />
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="vendors" element={<AdminVendors />} />

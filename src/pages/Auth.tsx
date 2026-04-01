@@ -13,7 +13,7 @@ import { lovable } from "@/integrations/lovable/index";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(searchParams.get("tab") !== "register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +21,19 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/vendor/dashboard");
-  }, [user, navigate]);
+    if (!user || authLoading) return;
+
+    // Check if user is admin, redirect accordingly
+    const checkRole = async () => {
+      const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" as const });
+      if (data) {
+        navigate("/admin");
+      } else {
+        navigate("/vendor/dashboard");
+      }
+    };
+    checkRole();
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +64,7 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.origin + "/auth",
     });
     if (result?.error) toast.error(String(result.error));
   };
