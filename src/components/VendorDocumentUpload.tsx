@@ -50,6 +50,17 @@ interface VendorDocumentUploadProps {
 const VendorDocumentUpload = ({ vendorId, userId }: VendorDocumentUploadProps) => {
   const [uploads, setUploads] = useState<Record<string, UploadedDoc | null>>({});
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  const getSignedUrl = async (filePath: string) => {
+    if (signedUrls[filePath]) return signedUrls[filePath];
+    const { data } = await supabase.storage.from("vendor-documents").createSignedUrl(filePath, 3600);
+    if (data?.signedUrl) {
+      setSignedUrls((p) => ({ ...p, [filePath]: data.signedUrl }));
+      return data.signedUrl;
+    }
+    return "";
+  };
 
   useEffect(() => {
     if (!vendorId) return;
@@ -64,15 +75,14 @@ const VendorDocumentUpload = ({ vendorId, userId }: VendorDocumentUploadProps) =
           map[d.document_type] = d;
         });
         setUploads(map);
+        // Pre-fetch signed URLs
+        for (const d of data) {
+          getSignedUrl(d.file_path);
+        }
       }
     };
     load();
   }, [vendorId]);
-
-  const getPublicUrl = (filePath: string) => {
-    const { data } = supabase.storage.from("vendor-documents").getPublicUrl(filePath);
-    return data.publicUrl;
-  };
 
   const handleUpload = async (type: string, file: File) => {
     if (!vendorId) {

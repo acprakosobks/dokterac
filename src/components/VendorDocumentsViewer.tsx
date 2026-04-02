@@ -25,6 +25,7 @@ interface DocRecord {
 const VendorDocumentsViewer = ({ vendorId }: VendorDocumentsViewerProps) => {
   const [docs, setDocs] = useState<DocRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -32,16 +33,21 @@ const VendorDocumentsViewer = ({ vendorId }: VendorDocumentsViewerProps) => {
         .from("vendor_documents")
         .select("*")
         .eq("vendor_id", vendorId);
-      setDocs((data as DocRecord[]) || []);
+      const docList = (data as DocRecord[]) || [];
+      setDocs(docList);
+      // Fetch signed URLs for all docs
+      const urls: Record<string, string> = {};
+      for (const d of docList) {
+        const { data: urlData } = await supabase.storage.from("vendor-documents").createSignedUrl(d.file_path, 3600);
+        if (urlData?.signedUrl) urls[d.file_path] = urlData.signedUrl;
+      }
+      setSignedUrls(urls);
       setLoading(false);
     };
     load();
   }, [vendorId]);
 
-  const getPublicUrl = (filePath: string) => {
-    const { data } = supabase.storage.from("vendor-documents").getPublicUrl(filePath);
-    return data.publicUrl;
-  };
+  const getUrl = (filePath: string) => signedUrls[filePath] || "";
 
   if (loading) {
     return <div className="text-sm text-muted-foreground">Memuat dokumen...</div>;
