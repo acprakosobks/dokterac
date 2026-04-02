@@ -88,7 +88,7 @@ const VendorDocumentsViewer = ({ vendorId }: VendorDocumentsViewerProps) => {
                 </div>
                 {doc ? (
                   <a
-                    href={getPublicUrl(doc.file_path)}
+                    href={getUrl(doc.file_path)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block group"
