@@ -182,8 +182,8 @@ const GeneralBooking = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="p-10">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold text-foreground mb-2">Booking Terkirim!</h2>
             <p className="text-muted-foreground mb-2">

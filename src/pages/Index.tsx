@@ -92,13 +92,13 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" variant="hero" asChild className="text-base px-8 py-6">
-                <Link to="/auth?tab=register">
-                  Daftar Sebagai Vendor
+                <Link to="/book">
+                  Booking Servis AC Sekarang
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
               <Button size="lg" variant="hero-outline" asChild className="text-base px-8 py-6">
-                <Link to="/auth">Masuk ke Dashboard</Link>
+                <Link to="/auth?tab=register">Daftar Sebagai Vendor</Link>
               </Button>
             </div>
           </div>
