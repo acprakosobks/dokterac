@@ -15,6 +15,7 @@ import AdminLayout from "./layouts/AdminLayout.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AdminVendors from "./pages/AdminVendors.tsx";
 import AdminOrders from "./pages/AdminOrders.tsx";
+import GeneralBooking from "./pages/GeneralBooking.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/vendor/dashboard" element={<VendorDashboard />} />
             <Route path="/v/:slug" element={<VendorPublic />} />
             <Route path="/v/:slug/book" element={<BookingForm />} />
+            <Route path="/book" element={<GeneralBooking />} />
             {/* Redirect old admin login to unified auth */}
             <Route path="/admin/login" element={<Navigate to="/auth" replace />} />
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
