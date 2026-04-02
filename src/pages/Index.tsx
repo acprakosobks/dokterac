@@ -63,7 +63,7 @@ const Index = () => {
               <Link to="/auth">Masuk</Link>
             </Button>
             <Button asChild>
-              <Link to="/auth?tab=register">Daftar Vendor</Link>
+              <Link to="/book">Booking Sekarang</Link>
             </Button>
           </div>
         </div>
