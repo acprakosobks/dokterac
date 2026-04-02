@@ -182,7 +182,7 @@ const VendorDocumentUpload = ({ vendorId, userId }: VendorDocumentUploadProps) =
                 <div className="flex items-center gap-3">
                   <div className="relative h-20 w-20 rounded-lg overflow-hidden border border-border bg-background">
                     <img
-                      src={getPublicUrl(doc.file_path)}
+                      src={signedUrls[doc.file_path] || ""}
                       alt={slot.label}
                       className="h-full w-full object-cover"
                     />

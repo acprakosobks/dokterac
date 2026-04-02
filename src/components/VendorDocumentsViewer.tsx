@@ -95,7 +95,7 @@ const VendorDocumentsViewer = ({ vendorId }: VendorDocumentsViewerProps) => {
                   >
                     <div className="relative h-32 rounded-md overflow-hidden border border-border bg-background">
                       <img
-                        src={getPublicUrl(doc.file_path)}
+                        src={getUrl(doc.file_path)}
                         alt={label}
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform"
                       />
