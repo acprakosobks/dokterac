@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Wind, Plus, Trash2, Save, Clock, MapPin } from "lucide-react";
+import { Wind, Save, Clock, MapPin } from "lucide-react";
 import MapPicker from "@/components/MapPicker";
 import VendorDocumentUpload from "@/components/VendorDocumentUpload";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface ServiceItem {
+interface MasterService {
   id: string;
-  name: string;
+  service_name: string;
+  sort_order: number;
+}
+
+interface VendorServiceState {
+  master_service_id: string;
+  is_active: boolean;
   price: string;
   description: string;
-  isNew?: boolean;
 }
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
@@ -34,9 +41,10 @@ const VendorSetup = () => {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [services, setServices] = useState<ServiceItem[]>([
-    { id: crypto.randomUUID(), name: "", price: "", description: "", isNew: true },
-  ]);
+
+  const [masterServices, setMasterServices] = useState<MasterService[]>([]);
+  const [vendorServices, setVendorServices] = useState<VendorServiceState[]>([]);
+
   const [schedule, setSchedule] = useState<Record<string, { open: string; close: string; active: boolean }>>(
     Object.fromEntries(DAYS.map((d) => [d, { open: "08:00", close: "17:00", active: true }]))
   );
@@ -45,14 +53,28 @@ const VendorSetup = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  // Load master services
   useEffect(() => {
-    if (!user) return;
+    const loadMaster = async () => {
+      const { data } = await supabase
+        .from("master_services")
+        .select("*")
+        .order("sort_order");
+      if (data) setMasterServices(data);
+    };
+    loadMaster();
+  }, []);
+
+  // Load vendor data
+  useEffect(() => {
+    if (!user || masterServices.length === 0) return;
     const loadVendor = async () => {
       const { data: vendor } = await supabase
         .from("vendors")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
+
       if (vendor) {
         setVendorId(vendor.id);
         setCompanyName(vendor.company_name);
@@ -65,29 +87,47 @@ const VendorSetup = () => {
         if (vendor.operational_hours && typeof vendor.operational_hours === "object") {
           setSchedule(vendor.operational_hours as any);
         }
-        const { data: svcData } = await supabase
-          .from("services")
-          .select("*")
+
+        // Load vendor_services
+        const { data: vsData } = await supabase
+          .from("vendor_services")
+          .select("master_service_id, is_active, price, description")
           .eq("vendor_id", vendor.id);
-        if (svcData && svcData.length > 0) {
-          setServices(svcData.map((s) => ({ id: s.id, name: s.service_name, price: String(s.price), description: s.description || "" })));
-        }
+
+        const vsMap = new Map(
+          (vsData || []).map((vs: any) => [vs.master_service_id, vs])
+        );
+
+        setVendorServices(
+          masterServices.map((ms) => {
+            const existing = vsMap.get(ms.id);
+            return {
+              master_service_id: ms.id,
+              is_active: existing ? existing.is_active : true,
+              price: existing ? String(existing.price) : "0",
+              description: existing?.description || "",
+            };
+          })
+        );
+      } else {
+        // New vendor - initialize all services as active
+        setVendorServices(
+          masterServices.map((ms) => ({
+            master_service_id: ms.id,
+            is_active: true,
+            price: "0",
+            description: "",
+          }))
+        );
       }
     };
     loadVendor();
-  }, [user]);
+  }, [user, masterServices]);
 
-  const addService = () => {
-    setServices([...services, { id: crypto.randomUUID(), name: "", price: "", description: "", isNew: true }]);
-  };
-
-  const removeService = (id: string) => {
-    if (services.length <= 1) return;
-    setServices(services.filter((s) => s.id !== id));
-  };
-
-  const updateService = (id: string, field: keyof ServiceItem, value: string) => {
-    setServices(services.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
+  const updateVendorService = (masterServiceId: string, field: keyof VendorServiceState, value: any) => {
+    setVendorServices((prev) =>
+      prev.map((vs) => (vs.master_service_id === masterServiceId ? { ...vs, [field]: value } : vs))
+    );
   };
 
   const handleSave = async () => {
@@ -117,19 +157,18 @@ const VendorSetup = () => {
         setVendorId(data.id);
       }
 
-      // Sync services: delete old, insert all
+      // Sync vendor_services: delete old, insert all
       if (currentVendorId) {
-        await supabase.from("services").delete().eq("vendor_id", currentVendorId);
-        const validServices = services.filter((s) => s.name.trim());
-        if (validServices.length > 0) {
-          const { error } = await supabase.from("services").insert(
-            validServices.map((s) => ({
-              vendor_id: currentVendorId!,
-              service_name: s.name,
-              price: Number(s.price) || 0,
-              description: s.description || null,
-            }))
-          );
+        await supabase.from("vendor_services").delete().eq("vendor_id", currentVendorId);
+        const rows = vendorServices.map((vs) => ({
+          vendor_id: currentVendorId!,
+          master_service_id: vs.master_service_id,
+          price: Number(vs.price) || 0,
+          description: vs.description || null,
+          is_active: vs.is_active,
+        }));
+        if (rows.length > 0) {
+          const { error } = await supabase.from("vendor_services").insert(rows);
           if (error) throw error;
         }
       }
@@ -144,6 +183,8 @@ const VendorSetup = () => {
   };
 
   if (authLoading) return null;
+
+  const activeCount = vendorServices.filter((vs) => vs.is_active).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -211,38 +252,61 @@ const VendorSetup = () => {
           </CardContent>
         </Card>
 
+        {/* Services Toggle */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="font-display">Daftar Layanan</CardTitle>
-                <CardDescription>Tambahkan layanan yang Anda tawarkan.</CardDescription>
+                <CardDescription>Aktifkan layanan yang Anda tawarkan dan atur harga masing-masing.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={addService}><Plus className="h-4 w-4" />Tambah</Button>
+              <Badge variant="secondary">{activeCount} / {masterServices.length} aktif</Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {services.map((service) => (
-              <div key={service.id} className="flex gap-3 items-start p-4 rounded-xl bg-muted/50 border border-border">
-                <div className="flex-1 grid md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Nama Layanan</Label>
-                    <Input placeholder="Cuci AC" value={service.name} onChange={(e) => updateService(service.id, "name", e.target.value)} />
+          <CardContent className="space-y-3">
+            {masterServices.map((ms) => {
+              const vs = vendorServices.find((v) => v.master_service_id === ms.id);
+              if (!vs) return null;
+              return (
+                <div
+                  key={ms.id}
+                  className={`rounded-xl border p-4 transition-all ${vs.is_active ? "border-primary/30 bg-primary/5" : "border-border bg-muted/30 opacity-60"}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={vs.is_active}
+                        onCheckedChange={(checked) => updateVendorService(ms.id, "is_active", checked)}
+                      />
+                      <span className={`font-medium ${vs.is_active ? "text-foreground" : "text-muted-foreground"}`}>
+                        {ms.service_name}
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Harga (Rp)</Label>
-                    <Input type="number" placeholder="150000" value={service.price} onChange={(e) => updateService(service.id, "price", e.target.value)} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Deskripsi</Label>
-                    <Input placeholder="Opsional" value={service.description} onChange={(e) => updateService(service.id, "description", e.target.value)} />
-                  </div>
+                  {vs.is_active && (
+                    <div className="grid md:grid-cols-2 gap-3 pl-12">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Harga (Rp)</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={vs.price}
+                          onChange={(e) => updateVendorService(ms.id, "price", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Deskripsi (opsional)</Label>
+                        <Input
+                          placeholder="Keterangan tambahan"
+                          value={vs.description}
+                          onChange={(e) => updateVendorService(ms.id, "description", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeService(service.id)} disabled={services.length <= 1} className="mt-5 text-muted-foreground hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Wind, MapPin, Calendar, Shield, ArrowRight, Star } from "lucide-react";
 import heroImage from "@/assets/hero-ac-service.jpg";
+import NearestVendors from "@/components/NearestVendors";
 
 const features = [
   {
@@ -103,7 +104,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-        {/* Wave divider */}
         <div className="relative">
           <svg viewBox="0 0 1440 80" className="w-full block" preserveAspectRatio="none">
             <path
@@ -114,8 +114,23 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Nearest Vendors */}
       <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Mitra Servis AC Terdekat
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Temukan teknisi AC profesional di sekitar lokasi Anda.
+            </p>
+          </div>
+          <NearestVendors />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 bg-secondary/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -144,7 +159,7 @@ const Index = () => {
       </section>
 
       {/* How it works */}
-      <section className="py-20 bg-secondary/50">
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">

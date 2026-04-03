@@ -37,16 +37,28 @@ const BookingForm = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       if (!slug) return;
       const { data: vendor } = await supabase.from("vendors").select("id").eq("slug", slug).maybeSingle();
       if (!vendor) { setLoading(false); return; }
       setVendorId(vendor.id);
-      const { data: svcData } = await supabase.from("services").select("id, service_name, price").eq("vendor_id", vendor.id);
-      setServices((svcData || []).map(s => ({ ...s, price: Number(s.price) })));
+
+      const { data: vsData } = await supabase
+        .from("vendor_services")
+        .select("id, price, master_services(service_name)")
+        .eq("vendor_id", vendor.id)
+        .eq("is_active", true);
+
+      setServices(
+        (vsData || []).map((vs: any) => ({
+          id: vs.id,
+          service_name: vs.master_services?.service_name || "",
+          price: Number(vs.price),
+        }))
+      );
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, [slug]);
 
   const toggleService = (id: string) => {
@@ -105,8 +117,8 @@ const BookingForm = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="p-10">
-            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-8 w-8 text-success" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold text-foreground mb-2">Booking Terkirim!</h2>
             <p className="text-muted-foreground mb-6">Vendor akan segera menghubungi Anda melalui WhatsApp untuk konfirmasi.</p>
