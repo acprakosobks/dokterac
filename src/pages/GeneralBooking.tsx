@@ -39,7 +39,6 @@ const GeneralBooking = () => {
   const [success, setSuccess] = useState(false);
   const [resultVendor, setResultVendor] = useState<{ name: string; distance: number } | null>(null);
 
-  // Form fields
   const [customerName, setCustomerName] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -100,12 +99,19 @@ const GeneralBooking = () => {
         const nearest = sorted[0];
         setPreviewVendorName(nearest.company_name);
 
-        const { data: svcData } = await supabase
-          .from("services")
-          .select("id, service_name, price")
-          .eq("vendor_id", nearest.id);
+        const { data: vsData } = await supabase
+          .from("vendor_services")
+          .select("id, price, master_services(service_name)")
+          .eq("vendor_id", nearest.id)
+          .eq("is_active", true);
 
-        setServices((svcData || []).map((s) => ({ ...s, price: Number(s.price) })));
+        setServices(
+          (vsData || []).map((vs: any) => ({
+            id: vs.id,
+            service_name: vs.master_services?.service_name || "",
+            price: Number(vs.price),
+          }))
+        );
         setSelectedServices([]);
       } catch {
         // silent
@@ -194,9 +200,7 @@ const GeneralBooking = () => {
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link to="/">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
+            <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <div className="flex items-center gap-2">
             <Wind className="h-5 w-5 text-primary" />
@@ -207,34 +211,21 @@ const GeneralBooking = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Location */}
           <Card>
             <CardHeader>
               <CardTitle className="font-display flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Lokasi Anda
+                <MapPin className="h-5 w-5 text-primary" />Lokasi Anda
               </CardTitle>
-              <CardDescription>
-                Tentukan lokasi untuk mencari vendor terdekat saat pengiriman.
-              </CardDescription>
+              <CardDescription>Tentukan lokasi untuk mencari vendor terdekat saat pengiriman.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <MapPicker
                 latitude={customerLat}
                 longitude={customerLng}
-                onLocationChange={(lat, lng) => {
-                  setCustomerLat(lat);
-                  setCustomerLng(lng);
-                }}
+                onLocationChange={(lat, lng) => { setCustomerLat(lat); setCustomerLng(lng); }}
                 height="h-48"
               />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleLocateMe}
-                disabled={locating}
-                className="w-full"
-              >
+              <Button type="button" variant="outline" onClick={handleLocateMe} disabled={locating} className="w-full">
                 {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
                 {locating ? "Mencari lokasi..." : "Gunakan Lokasi Saya"}
               </Button>
@@ -250,11 +241,8 @@ const GeneralBooking = () => {
             </CardContent>
           </Card>
 
-          {/* Customer Info */}
           <Card>
-            <CardHeader>
-              <CardTitle className="font-display">Data Pelanggan</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-display">Data Pelanggan</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -273,7 +261,6 @@ const GeneralBooking = () => {
             </CardContent>
           </Card>
 
-          {/* Services */}
           <Card>
             <CardHeader>
               <CardTitle className="font-display">Pilih Layanan</CardTitle>
@@ -318,11 +305,8 @@ const GeneralBooking = () => {
             </CardContent>
           </Card>
 
-          {/* Schedule */}
           <Card>
-            <CardHeader>
-              <CardTitle className="font-display">Jadwal Kunjungan</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-display">Jadwal Kunjungan</CardTitle></CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">

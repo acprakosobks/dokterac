@@ -53,11 +53,21 @@ const VendorPublic = () => {
         operational_hours: vendorData.operational_hours as any,
       });
 
-      const { data: svcData } = await supabase
-        .from("services")
-        .select("*")
-        .eq("vendor_id", vendorData.id);
-      setServices(svcData || []);
+      // Fetch active vendor_services joined with master_services
+      const { data: vsData } = await supabase
+        .from("vendor_services")
+        .select("id, price, description, master_services(service_name)")
+        .eq("vendor_id", vendorData.id)
+        .eq("is_active", true);
+
+      setServices(
+        (vsData || []).map((vs: any) => ({
+          id: vs.id,
+          service_name: vs.master_services?.service_name || "",
+          price: Number(vs.price),
+          description: vs.description,
+        }))
+      );
       setLoading(false);
     };
     fetchVendor();
@@ -111,7 +121,7 @@ const VendorPublic = () => {
             <div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Layanan Tersedia</h2>
               {services.length === 0 ? (
-                <p className="text-muted-foreground">Belum ada layanan yang ditambahkan.</p>
+                <p className="text-muted-foreground">Belum ada layanan yang diaktifkan.</p>
               ) : (
                 <div className="space-y-3">
                   {services.map((service) => (
@@ -125,7 +135,7 @@ const VendorPublic = () => {
                           </div>
                         </div>
                         <Badge variant="secondary" className="font-semibold whitespace-nowrap ml-4">
-                          Rp {Number(service.price).toLocaleString("id-ID")}
+                          Rp {service.price.toLocaleString("id-ID")}
                         </Badge>
                       </CardContent>
                     </Card>
