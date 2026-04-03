@@ -146,6 +146,27 @@ export type Database = {
           },
         ]
       }
+      master_services: {
+        Row: {
+          created_at: string
+          id: string
+          service_name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          service_name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          service_name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string
@@ -230,6 +251,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vendor_documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_services: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          master_service_id: string
+          price: number
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          master_service_id: string
+          price?: number
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          master_service_id?: string
+          price?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_services_master_service_id_fkey"
+            columns: ["master_service_id"]
+            isOneToOne: false
+            referencedRelation: "master_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_services_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
