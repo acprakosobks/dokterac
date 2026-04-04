@@ -77,6 +77,7 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
   const [actionLoading, setActionLoading] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const { toast } = useToast();
 
   const services = booking ? (Array.isArray(booking.selected_services) ? (booking.selected_services as any[]) : []) : [];
