@@ -17,6 +17,7 @@ import AdminVendors from "./pages/AdminVendors.tsx";
 import AdminOrders from "./pages/AdminOrders.tsx";
 import GeneralBooking from "./pages/GeneralBooking.tsx";
 import VendorDailyOrders from "./pages/VendorDailyOrders.tsx";
+import OrderTracker from "./pages/OrderTracker.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
