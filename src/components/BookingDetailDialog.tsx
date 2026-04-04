@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MessageCircle, MapPin, User, Phone, Mail, Calendar, Clock, FileText, Navigation, Play, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { MessageCircle, MapPin, User, Phone, Mail, Calendar, Clock, FileText, Navigation, Play, CheckCircle, XCircle, Loader2, CalendarClock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,7 @@ import BookingStatusLog from "@/components/BookingStatusLog";
 import BookingCompletionPhotos from "@/components/BookingCompletionPhotos";
 import BookingCompletionDialog from "@/components/BookingCompletionDialog";
 import CancelBookingDialog from "@/components/CancelBookingDialog";
+import RescheduleDialog from "@/components/RescheduleDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 const STATUS_STYLES: Record<string, string> = {
