@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AdminVendors from "./pages/AdminVendors.tsx";
 import AdminOrders from "./pages/AdminOrders.tsx";
 import GeneralBooking from "./pages/GeneralBooking.tsx";
+import VendorDailyOrders from "./pages/VendorDailyOrders.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/vendor/setup" element={<VendorSetup />} />
             <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+            <Route path="/vendor/daily-orders" element={<VendorDailyOrders />} />
             <Route path="/v/:slug" element={<VendorPublic />} />
             <Route path="/v/:slug/book" element={<BookingForm />} />
             <Route path="/book" element={<GeneralBooking />} />

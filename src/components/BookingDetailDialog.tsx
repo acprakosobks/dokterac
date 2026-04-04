@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MessageCircle, MapPin, User, Phone, Mail, Calendar, Clock, FileText, Navigation, Play, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { MessageCircle, MapPin, User, Phone, Mail, Calendar, Clock, FileText, Navigation, Play, CheckCircle, XCircle, Loader2, CalendarClock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,7 @@ import BookingStatusLog from "@/components/BookingStatusLog";
 import BookingCompletionPhotos from "@/components/BookingCompletionPhotos";
 import BookingCompletionDialog from "@/components/BookingCompletionDialog";
 import CancelBookingDialog from "@/components/CancelBookingDialog";
+import RescheduleDialog from "@/components/RescheduleDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -76,6 +77,7 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
   const [actionLoading, setActionLoading] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const { toast } = useToast();
 
   const services = booking ? (Array.isArray(booking.selected_services) ? (booking.selected_services as any[]) : []) : [];
@@ -132,6 +134,11 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
     return (
       <div className="flex flex-col gap-2">
+        {(status === "pending" || status === "confirmed") && (
+          <Button variant="outline" onClick={() => setRescheduleOpen(true)} disabled={actionLoading} className="w-full">
+            <CalendarClock className="h-4 w-4" />Reschedule
+          </Button>
+        )}
         {status === "pending" && (
           <>
             <Button onClick={() => changeStatus("confirmed", "Pesanan dikonfirmasi")} disabled={actionLoading} className="w-full">
@@ -314,6 +321,20 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
         bookingId={booking.id}
         currentStatus={booking.status}
         onCancelled={() => {
+          onStatusChange?.();
+          onOpenChange(false);
+        }}
+      />
+
+      <RescheduleDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        bookingId={booking.id}
+        currentDate={booking.booking_date}
+        currentTime={booking.booking_time}
+        currentStatus={booking.status}
+        customerName={booking.customer_name}
+        onRescheduled={() => {
           onStatusChange?.();
           onOpenChange(false);
         }}

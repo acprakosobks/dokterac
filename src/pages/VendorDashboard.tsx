@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Wind, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye } from "lucide-react";
+import { Wind, ExternalLink, Calendar, Clock, SortAsc, SortDesc, Settings, LogOut, LayoutDashboard, Loader2, Eye, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +164,9 @@ const VendorDashboard = () => {
             <nav className="hidden md:flex items-center gap-1 text-sm">
               <Button variant="ghost" size="sm" className="text-primary">
                 <LayoutDashboard className="h-4 w-4" />Dashboard
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/vendor/daily-orders"><CalendarClock className="h-4 w-4" />Pesanan Harian</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/vendor/setup"><Settings className="h-4 w-4" />Pengaturan</Link>
