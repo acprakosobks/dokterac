@@ -81,18 +81,19 @@ Deno.serve(async (req) => {
 
     const nearest = withDistance[0];
 
-    // 2. Fetch services belonging to nearest vendor that match selected IDs
+    // 2. Fetch vendor_services belonging to nearest vendor that match selected IDs
     const { data: svcData, error: svcErr } = await supabase
-      .from("services")
-      .select("id, service_name, price")
+      .from("vendor_services")
+      .select("id, price, master_services(service_name)")
       .eq("vendor_id", nearest.id)
+      .eq("is_active", true)
       .in("id", selected_service_ids);
 
     if (svcErr) throw svcErr;
 
-    const selectedServices = (svcData || []).map((s) => ({
+    const selectedServices = (svcData || []).map((s: any) => ({
       id: s.id,
-      name: s.service_name,
+      name: s.master_services?.service_name || "Layanan",
       price: Number(s.price),
     }));
 
