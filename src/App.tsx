@@ -38,6 +38,8 @@ const App = () => (
             <Route path="/v/:slug" element={<VendorPublic />} />
             <Route path="/v/:slug/book" element={<BookingForm />} />
             <Route path="/book" element={<GeneralBooking />} />
+            <Route path="/tracker/:orderId" element={<OrderTracker />} />
+            <Route path="/tracker" element={<OrderTracker />} />
             {/* Redirect old admin login to unified auth */}
             <Route path="/admin/login" element={<Navigate to="/auth" replace />} />
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
