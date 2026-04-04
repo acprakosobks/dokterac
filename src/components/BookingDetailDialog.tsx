@@ -134,6 +134,11 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
 
     return (
       <div className="flex flex-col gap-2">
+        {(status === "pending" || status === "confirmed") && (
+          <Button variant="outline" onClick={() => setRescheduleOpen(true)} disabled={actionLoading} className="w-full">
+            <CalendarClock className="h-4 w-4" />Reschedule
+          </Button>
+        )}
         {status === "pending" && (
           <>
             <Button onClick={() => changeStatus("confirmed", "Pesanan dikonfirmasi")} disabled={actionLoading} className="w-full">
