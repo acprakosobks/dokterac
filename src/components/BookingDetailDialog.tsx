@@ -325,6 +325,20 @@ const BookingDetailDialog = ({ open, onOpenChange, booking, vendorLat, vendorLng
           onOpenChange(false);
         }}
       />
+
+      <RescheduleDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        bookingId={booking.id}
+        currentDate={booking.booking_date}
+        currentTime={booking.booking_time}
+        currentStatus={booking.status}
+        customerName={booking.customer_name}
+        onRescheduled={() => {
+          onStatusChange?.();
+          onOpenChange(false);
+        }}
+      />
     </>
   );
 };
