@@ -166,6 +166,9 @@ const VendorDashboard = () => {
                 <LayoutDashboard className="h-4 w-4" />Dashboard
               </Button>
               <Button variant="ghost" size="sm" asChild>
+                <Link to="/vendor/daily-orders"><CalendarClock className="h-4 w-4" />Pesanan Harian</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
                 <Link to="/vendor/setup"><Settings className="h-4 w-4" />Pengaturan</Link>
               </Button>
             </nav>
